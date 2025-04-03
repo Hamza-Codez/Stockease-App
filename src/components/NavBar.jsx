@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react"; // Icon library for menu
+import navIcon from '../assets/img/navIcon.png';
 
 export const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,10 +12,13 @@ export const NavBar = () => {
   };
 
   return (
-    <nav className="bg-blue-500 shadow-md rounded-lg p-4">
+    <nav className="bg-transparent font-inter shadow-md p-4">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <h1 className="text-white text-lg font-bold">Stock Management</h1>
+        <div className="flex items-center gap-2.5">
+          <img className="h-8 w-8.4" src={navIcon} alt="Logo" />
+          <span className="text-2xl font-bold text-[#108587] leading-[36px]">Stockease</span>
+        </div>
 
         {/* Hamburger Menu (Mobile) */}
         <button

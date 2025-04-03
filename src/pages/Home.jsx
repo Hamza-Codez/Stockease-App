@@ -1,21 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import AddTheCustomer from "../components/AddTheCustomer";
 import InventoryProducts from "../components/InventoryProducts";
-import { NavBar } from "../components/NavBar";
+import Sidebar from "../components/Sidebar"; 
+import Topbar from "../components/Topbar";
 
 const Home = () => {
-    
+    const [activeComponent, setActiveComponent] = useState("customers");
 
     return (
-        <>
-        <NavBar/>
-        <div className="p-5 flex flex-col items-center gap-10">
-            
-            <h1 className="text-2xl font-bold uppercase ">Plastic Factory Management</h1>
-                       
-            <AddTheCustomer/>
-            <InventoryProducts/>
-        </div></>
+        <main className="flex h-screen">
+            {/* Sidebar */}
+            <Sidebar setActiveComponent={setActiveComponent} />
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col items-center">
+                <Topbar/>
+                <h1 className="text-2xl font-bold uppercase mb-1">Plastic Factory Management</h1>
+                
+                {/* Render Active Component */}
+                {activeComponent === "customers" ? <AddTheCustomer /> : <InventoryProducts />}
+            </div>
+        </main>
     );
 };
 

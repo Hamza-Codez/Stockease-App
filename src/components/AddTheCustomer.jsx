@@ -57,7 +57,7 @@ function AddTheCustomer() {
     };
 
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg mt-10">
+        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <h1 className="text-2xl font-bold text-center mb-6">Add New Client</h1>
             <div className="space-y-4">
                 <div>
