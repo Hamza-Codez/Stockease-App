@@ -1,27 +1,31 @@
 import React, { useState } from "react";
 import AddTheCustomer from "../components/AddTheCustomer";
 import InventoryProducts from "../components/InventoryProducts";
-import Sidebar from "../components/Sidebar"; 
+import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
 const Home = () => {
-    const [activeComponent, setActiveComponent] = useState("customers");
+  const [activeComponent, setActiveComponent] = useState("inventory");
+  const [searchTerm, setSearchTerm] = useState('');
 
-    return (
-        <main className="flex h-screen">
-            {/* Sidebar */}
-            <Sidebar setActiveComponent={setActiveComponent} />
+  return (
+    <main className="flex h-screen max-w-[1600px] mx-auto">
+      <Sidebar setActiveComponent={setActiveComponent} />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col items-center">
-                <Topbar/>
-                <h1 className="text-2xl font-bold uppercase mb-1">Plastic Factory Management</h1>
-                
-                {/* Render Active Component */}
-                {activeComponent === "customers" ? <AddTheCustomer /> : <InventoryProducts />}
-            </div>
-        </main>
-    );
+      <div className="flex-1 flex flex-col items-center">
+        <Topbar
+          onSearch={(searchTerm) => setSearchTerm(searchTerm)}
+          searchType={activeComponent === "inventory" ? "products" : "customers"}
+        />
+
+        {activeComponent === "inventory" ? (
+          <InventoryProducts searchTerm={searchTerm} />
+        ) : (
+          <AddTheCustomer searchTerm={searchTerm} />
+        )}
+      </div>
+    </main>
+  );
 };
 
 export default Home;

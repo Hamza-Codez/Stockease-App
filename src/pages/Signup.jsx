@@ -81,7 +81,7 @@ function Signup() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
@@ -95,7 +95,7 @@ function Signup() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md "
             />
           </div>
 
@@ -109,7 +109,7 @@ function Signup() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+              className={`mt-1 block w-full px-3 py-2 border rounded-md ${
                 formData.password &&
                 formData.confirmPassword &&
                 formData.password !== formData.confirmPassword

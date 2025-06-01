@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { auth } from "../../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
+import Nav from "../components/Nav";
 
 function Login() {
 
@@ -35,7 +36,7 @@ function Login() {
       );
       console.log("Login successful:", userCredential.user.uid);
       localStorage.setItem("adminId", userCredential.user.uid);
-      navigate("/home"); // Redirect to dashboard after successful login
+      navigate("/home"); 
     } catch (error) {
       console.error("Login error:", error);
       setError("Invalid email or password");
@@ -43,10 +44,14 @@ function Login() {
   };
 
   return (
+<>
+     <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
+        <Nav/>
+      </nav>
     <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB] px-4 sm:px-6 lg:px-8">
-      <div className="w-[438px] h-[534px] max-w-md sm:max-w-lg lg:max-w-xl bg-white py-12 p-8 shadow-md rounded-lg">
+      <div className="w-[400px] h-[534px] max-w-md sm:max-w-lg lg:max-w-xl bg-white py-12 p-8 shadow-md rounded-lg">
         {/* Title */}
-        <h2 className=" text-2xl font-bold text-gray-900">Welcome Back</h2>
+        <h2 className=" text-2xl font-bold text-[#108587]">Welcome Back</h2>
 
         {/* Error Message */}
         {error && (
@@ -56,7 +61,7 @@ function Login() {
         )}
 
         {/* Form */}
-        <form className="mt-6 space-y-8" onSubmit={handleSubmit}>
+        <form  autoComplete="off" className="mt-6 space-y-8" onSubmit={handleSubmit}>
         <div className="relative">
           <label 
             htmlFor="email" 
@@ -64,6 +69,7 @@ function Login() {
           >
             Email address
           </label>
+          
           <input
             type="email"
             name="email"
@@ -71,7 +77,7 @@ function Login() {
             onChange={handleChange}
             required
             className="block w-full px-4 py-3 mt-2 border border-gray-300 rounded-md 
-            shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            shadow-sm "
           />
         </div>
 
@@ -85,16 +91,14 @@ function Login() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none 
+            "/>
           </div>
-
-          
 
           <div>
             <button
               type="submit"
-              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#108587] hover:bg-[#0c7c6b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Sign in
             </button>
@@ -104,12 +108,13 @@ function Login() {
         {/* Signup Link */}
         <div className="mt-4 text-center text-sm text-gray-600">
           New here?{" "}
-          <Link to="/signup" className="font-medium text-blue-600 hover:underline">
+          <Link to="/signup" className="font-medium text-[#108587] hover:underline">
             Sign up here
           </Link>
         </div>
       </div>
     </div>
+</>
   );
 }
 
