@@ -19,19 +19,4 @@ This project is built using **React** with **Vite** for blazing-fast development
 
 - Pixel-perfect UI from Figma designs
 - Firebase Auth and Firestore integration
-- Responsive layout and component structure
 - React Router setup and modular file organization
-
----
-
-## 🔧 Setup Instructions
-
-# Clone the repository
-git clone https://github.com/your-username/stocke-ease.git
-cd stocke-ease
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
