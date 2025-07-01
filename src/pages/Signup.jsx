@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
+import Nav from "../components/Nav";
+
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -52,10 +54,14 @@ function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl bg-white p-8 shadow-md rounded-lg">
+   <>
+    <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
+        <Nav/>
+      </nav>
+    <div className="flex max-h-screen items-center justify-center pt-12 bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF] px-4 sm:px-6 lg:px-8">
+      <div className="w-[25rem] pb-12 max-w-md sm:max-w-lg lg:max-w-xl bg-white p-8 shadow-md rounded-lg">
         {/* Title */}
-        <h2 className="text-center text-3xl font-bold text-gray-900">Create Your Account</h2>
+        <h2 className="text-start pb-3 text-2xl font-bold text-[#108587]">Create Your Account</h2>
         
         {/* Error / Success Messages */}
         {error && (
@@ -71,8 +77,11 @@ function Signup() {
 
         {/* Signup Form */}
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <div className="relative">
+            <label
+              htmlFor="email"
+              className="absolute -top-2 left-3 z-10 px-2 text-xs font-medium text-[#108587] bg-white"
+            >
               Email Address
             </label>
             <input
@@ -81,12 +90,15 @@ function Signup() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className="block w-full px-4 py-3 mt-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <div className="relative">
+            <label
+              htmlFor="password"
+              className="absolute -top-2 left-3 z-10 px-2 text-xs font-medium text-[#108587] bg-white"
+            >
               Password
             </label>
             <input
@@ -95,12 +107,15 @@ function Signup() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md "
+              className="block w-full px-4 py-3 mt-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+          <div className="relative">
+            <label
+              htmlFor="confirmPassword"
+              className="absolute -top-2 left-3 z-10 px-2 text-xs font-medium text-[#108587] bg-white"
+            >
               Confirm Password
             </label>
             <input
@@ -109,7 +124,7 @@ function Signup() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className={`mt-1 block w-full px-3 py-2 border rounded-md ${
+              className={`block w-full px-4 py-3 mt-2 border rounded-md shadow-sm ${
                 formData.password &&
                 formData.confirmPassword &&
                 formData.password !== formData.confirmPassword
@@ -117,30 +132,34 @@ function Signup() {
                   : "border-gray-300"
               }`}
             />
-            {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
-            )}
+            {formData.password &&
+              formData.confirmPassword &&
+              formData.password !== formData.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+              )}
           </div>
 
           <div>
             <button
               type="submit"
-              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="cursor-pointer w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#108587] hover:bg-[#0e6f70] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#108587]"
             >
               Sign Up
             </button>
           </div>
         </form>
 
+
         {/* Login Link */}
         <div className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-blue-600 hover:underline">
+          <Link to="/login" className="font-medium text-[#108587] hover:underline">
             Log in here
           </Link>
         </div>
       </div>
     </div>
+   </>
   );
 }
 
