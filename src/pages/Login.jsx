@@ -104,7 +104,7 @@ function Login() {
               type="submit"
               className="cursor-pointer w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#108587] hover:bg-[#0c7c6b] "
             >
-              Sign in
+              Log in
             </button>
           </div>
         </form>

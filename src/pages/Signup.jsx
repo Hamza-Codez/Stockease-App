@@ -58,10 +58,10 @@ function Signup() {
     <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
         <Nav/>
       </nav>
-    <div className="flex max-h-screen items-center justify-center pt-12 bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF] px-4 sm:px-6 lg:px-8">
+    <div className="flex max-h-screen items-center justify-center pt-12 bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF]j px-4 sm:px-6 lg:px-8">
       <div className="w-[25rem] pb-12 max-w-md sm:max-w-lg lg:max-w-xl bg-white p-8 shadow-md rounded-lg">
         {/* Title */}
-        <h2 className="text-start pb-3 text-2xl font-bold text-[#108587]">Create Your Account</h2>
+        <h2 className="text-start pb-3 text-2xl font-bold text-[#108587]">Create New Account</h2>
         
         {/* Error / Success Messages */}
         {error && (
