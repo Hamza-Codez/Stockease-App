@@ -1,52 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "../../firebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { authApi, userProfileApi } from "../services/firebaseApi";
 import { Link, useNavigate } from "react-router-dom";
-import Nav from "../components/Nav";
+import navIcon from "../assets/img/navIcon.png";
 
 function Login() {
-
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  useEffect(()=>{
-    const userId = localStorage.getItem('adminId')
-    
-    if(userId){
-      navigate("/home")
-    }
-  },[])
+
+  useEffect(() => {
+    if (localStorage.getItem("adminId")) navigate("/home");
+  }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      console.log("Login successful:", userCredential.user.uid);
-      localStorage.setItem("adminId", userCredential.user.uid);
-      navigate("/home"); 
-    } catch (error) {
-      console.error("Login error:", error);
+      const userCredential = await authApi.signIn(formData.email, formData.password);
+      const uid = userCredential.user.uid;
+      const email = userCredential.user.email || "";
+      let profile = await userProfileApi.get(uid);
+      if (!profile) {
+        await userProfileApi.set(uid, { email, displayName: email.split("@")[0] || "User" });
+        profile = { displayName: email.split("@")[0] || "User" };
+      }
+      const displayName = profile.displayName || email.split("@")[0] || "User";
+      localStorage.setItem("adminId", uid);
+      localStorage.setItem("userDisplayName", displayName);
+      navigate("/home");
+    } catch (err) {
+      console.error("Login error:", err);
       setError("Invalid email or password");
     }
   };
 
   return (
 <>
-     <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
-        <Nav/>
+     <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <img className="h-8 w-8" src={navIcon} alt="Logo" />
+          <span className="text-2xl font-bold text-[#108587] leading-tight">Stockease</span>
+        </div>
       </nav>
     <div className="flex max-h-screen items-center justify-center bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF] py-11 px-4 sm:px-6 lg:px-8">
       <div className="w-[400px] h-[384px] max-w-md sm:max-w-lg lg:max-w-xl bg-white py-12 p-8 shadow-md rounded-lg">

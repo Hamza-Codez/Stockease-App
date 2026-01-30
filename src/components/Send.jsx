@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { customerDataDataContext } from '../pages/CustomerContext';
-import { db } from '../../firebaseConfig';
-import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { customerRecordsApi, inventoryApi } from '../services/firebaseApi';
 import { toast } from 'react-toastify';
 
 function Send() {
@@ -25,7 +24,7 @@ function Send() {
       newErrors.quantity = 'Quantity must be greater than 0';
     }
 
-    const selectedProductData = inventoryItem.find(item => item.id === selectedProduct);
+    const selectedProductData = (Array.isArray(inventoryItem) ? inventoryItem : []).find((item) => item.id === selectedProduct);
     if (selectedProductData && Number(quantity) > selectedProductData.quantity) {
       newErrors.quantity = 'Not enough stock available';
     }
@@ -35,11 +34,11 @@ function Send() {
   };
 
   const handleProductSelect = (e) => {
-    const selected = inventoryItem.find(item => item.id === e.target.value);
+    const selected = inventoryItem?.find((item) => item.id === e.target.value);
     if (selected) {
       setSelectedProduct(selected.id);
-      setPrice(selected.price.toString());
-      setErrors(prev => ({ ...prev, product: '' }));
+      setPrice(String(selected?.price ?? 0));
+      setErrors((prev) => ({ ...prev, product: '' }));
     }
   };
 
@@ -47,28 +46,30 @@ function Send() {
     if (!validateForm()) return;
 
     try {
-      const selectedProductData = inventoryItem.find(item => item.id === selectedProduct);
-      
-      const data = {
+      const selectedProductData = inventoryItem?.find((item) => item.id === selectedProduct);
+      if (!selectedProductData) {
+        toast.error('Product not found');
+        return;
+      }
+
+      const qty = Number(quantity);
+      const unitPrice = Number(price) || 0;
+      const totalAmount = unitPrice * qty;
+
+      await customerRecordsApi.add({
         customer_id: customerId,
         admin_id: adminId,
         product_name: selectedProductData.productName,
-        quantity: Number(quantity),
-        price: Number(price),
+        quantity: qty,
+        price: unitPrice,
         product_id: selectedProduct,
-        total_amount: Number(price) * Number(quantity),
+        total_amount: totalAmount,
         created_at: new Date(),
-        type: 'send'
-      };
-
-      // Add to customerRecord
-      await addDoc(collection(db, "customerRecord"), data);
-
-      // Update inventory
-      const newQuantity = selectedProductData.quantity - Number(quantity);
-      await updateDoc(doc(db, "inventory", selectedProduct), {
-        quantity: newQuantity
+        type: 'send',
       });
+
+      const newQuantity = selectedProductData.quantity - qty;
+      await inventoryApi.updateQuantity(selectedProduct, newQuantity);
 
       // Reset form
       setSelectedProduct('');
@@ -102,7 +103,7 @@ function Send() {
             }`}
           >
             <option value="">Choose a product</option>
-            {Array.isArray(inventoryItem) && inventoryItem.map((item) => (
+            {(Array.isArray(inventoryItem) ? inventoryItem : []).map((item) => (
               <option key={item.id} value={item.id} disabled={item.quantity === 0}>
                 {item.productName} - Stock: {item.quantity} 
               </option>

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
-import { db } from '../../firebaseConfig';
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { customersApi, deletedRecordsApi } from '../services/firebaseApi';
 import { Pencil, Trash2, Plus, X } from 'lucide-react';
 
 const CustomerFormFields = ({ formData, errors, handleInputChange }) => (
@@ -287,25 +286,20 @@ function AddTheCustomer({ searchTerm = '' }) {
         }, 3000);
     };
 
-    const fetchCustomers = async () => {
+    const fetchCustomers = useCallback(async () => {
         try {
-            const q = query(collection(db, "customers"), where("adminId", "==", adminId));
-            const querySnapshot = await getDocs(q);
-            const customersList = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const customersList = await customersApi.getByAdmin(adminId);
             setCustomers(customersList);
-            setLoading(false);
         } catch (error) {
             console.error("Error fetching customers: ", error);
+        } finally {
             setLoading(false);
         }
-    };
+    }, [adminId]);
 
     useEffect(() => {
         fetchCustomers();
-    }, []);
+    }, [fetchCustomers]);
 
     useEffect(() => {
         if (searchTerm) {
@@ -366,24 +360,22 @@ function AddTheCustomer({ searchTerm = '' }) {
                 phone: formData.phone.trim(),
                 address: formData.address.trim(),
                 balance: formData.balance.trim(),
-                createdAt: new Date(),
-                adminId: adminId
+                adminId,
             };
 
             if (modalType === "add") {
-                await addDoc(collection(db, "customers"), customerData);
+                await customersApi.add({ ...customerData, createdAt: new Date() });
                 showToast("Customer added successfully");
             } else {
-                await updateDoc(doc(db, "customers", currentCustomerId), customerData);
+                await customersApi.update(currentCustomerId, customerData);
                 showToast("Customer updated successfully");
             }
-
             resetForm();
             fetchCustomers();
         } catch (error) {
             console.error("Error saving customer: ", error);
         }
-    }, [formData, modalType, currentCustomerId, adminId, resetForm]); // Add all dependencies
+    }, [formData, modalType, currentCustomerId, adminId, resetForm, fetchCustomers]);
 
     const handleEdit = (customer) => {
         setFormData({
@@ -403,15 +395,22 @@ function AddTheCustomer({ searchTerm = '' }) {
     };
 
     const handleDeleteConfirm = useCallback(async () => {
+        if (!customerToDelete) return;
         try {
-            await deleteDoc(doc(db, "customers", customerToDelete.id));
+            await deletedRecordsApi.add({
+                type: 'customer',
+                admin_id: adminId,
+                name: customerToDelete.name,
+                phone: customerToDelete.phone,
+            });
+            await customersApi.delete(customerToDelete.id);
             fetchCustomers();
             showToast("Customer deleted successfully");
         } catch (error) {
             console.error("Error deleting customer: ", error);
         }
         setShowDeleteModal(false);
-    }, [customerToDelete]); // Depend on customerToDelete
+    }, [customerToDelete, adminId, fetchCustomers]);
 
     // Pagination Logic
     const indexOfLastItem = currentPage * itemsPerPage;

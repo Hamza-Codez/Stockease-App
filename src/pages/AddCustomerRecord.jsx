@@ -3,7 +3,6 @@ import Send from '../components/Send'
 import Receive from '../components/Receive'
 import { customerDataDataContext } from './CustomerContext';
 import InventoryProducts from '../components/InventoryProducts';
-import { NavBar } from '../components/NavBar';
 
 function AddCustomerRecord() {
     const { customerData, customerId } = useContext(customerDataDataContext);
@@ -11,7 +10,6 @@ function AddCustomerRecord() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4">
-          <NavBar/>
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">

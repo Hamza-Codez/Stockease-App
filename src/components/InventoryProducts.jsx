@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { db } from "../../firebaseConfig";
+import { inventoryApi, deletedRecordsApi } from '../services/firebaseApi';
 import { AdminDataContext } from '../pages/AdminContext';
 import { customerDataDataContext } from '../pages/CustomerContext';
-import { collection, addDoc, deleteDoc, doc, getDocs, query, where, updateDoc } from 'firebase/firestore';
-import Card from './Card'; 
+import Card from './Card';
 import { Pencil, CirclePlus } from 'lucide-react';
 
 function InventoryProducts({ onInventoryUpdate, searchTerm }) {
     const [inventory, setInventory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [newItem, setNewItem] = useState({ productName: '', quantity: '', createdAt: new Date() });
+    const [newItem, setNewItem] = useState({ productName: '', quantity: '', price: '', createdAt: new Date() });
     const [toast, setToast] = useState({ show: false, message: '' });
     const { setUpdatedData } = useContext(AdminDataContext);
     const { setInventoryItem } = useContext(customerDataDataContext);
@@ -22,28 +21,19 @@ function InventoryProducts({ onInventoryUpdate, searchTerm }) {
         setTimeout(() => setToast({ show: false, message: '' }), 3000);
     };
 
-    const filteredInventory = inventory.filter(item => 
-        item.productName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    const filteredInventory = (typeof searchTerm === 'string' ? inventory.filter(item =>
+        item.productName?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : inventory);
 
     const fetchInventory = async () => {
         try {
-            const q = query(collection(db, "inventory"), where("adminId", "==", adminId));
-            const querySnapshot = await getDocs(q);
-            const inventoryList = querySnapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    ...data,
-                    createdAt: data.createdAt?.toDate() || new Date()
-                };
-            });
+            const inventoryList = await inventoryApi.getByAdmin(adminId);
             setInventory(inventoryList);
             setInventoryItem(inventoryList);
-            setLoading(false);
         } catch (error) {
             console.error("Error fetching inventory: ", error);
             showToast('Failed to load inventory');
+        } finally {
             setLoading(false);
         }
     };
@@ -54,8 +44,21 @@ function InventoryProducts({ onInventoryUpdate, searchTerm }) {
 
     const deleteProductFromInventory = async (productId) => {
         try {
-            await deleteDoc(doc(db, "inventory", productId));
-            setInventory(prevInventory => prevInventory.filter(item => item.id !== productId));
+            const item = inventory.find((i) => i.id === productId);
+            if (item) {
+                await deletedRecordsApi.add({
+                    type: 'inventory',
+                    admin_id: adminId,
+                    productName: item.productName,
+                    quantity: item.quantity ?? 0,
+                    rate: item.price ?? 0,
+                    totalAmount: (item.quantity ?? 0) * (item.price ?? 0),
+                });
+            }
+            await inventoryApi.delete(productId);
+            const next = inventory.filter((i) => i.id !== productId);
+            setInventory(next);
+            setInventoryItem(next);
             showToast('Product deleted successfully');
         } catch (error) {
             console.error("Error deleting product: ", error);
@@ -66,42 +69,49 @@ function InventoryProducts({ onInventoryUpdate, searchTerm }) {
     const editHandler = (item) => {
         setUpdatedData(item);
         setShowForm(true);
-        setNewItem(item);
+        setNewItem({ ...item, price: item.price ?? '' });
     };
 
     const handleAddItem = async () => {
-        if (!newItem.productName.trim() || !newItem.quantity) {
+        if (!newItem.productName?.trim() || !newItem.quantity) {
             showToast('Please enter both product name and quantity');
             return;
         }
-    
+
         try {
-            const newItemData = { 
-                ...newItem, 
-                adminId,
-                quantity: Number(newItem.quantity),
-                createdAt: newItem.createdAt || new Date()
-            };
-            
+            const qty = Number(newItem.quantity);
+            const pr = newItem.price === '' || newItem.price == null ? 0 : Number(newItem.price);
+
             if (newItem.id) {
-                await updateDoc(doc(db, "inventory", newItem.id), newItemData);
-                setInventory(prevInventory => 
-                    prevInventory.map(item => 
-                        item.id === newItem.id ? newItemData : item
+                await inventoryApi.update(newItem.id, {
+                    productName: newItem.productName.trim(),
+                    quantity: qty,
+                    price: pr,
+                });
+                setInventory((prev) =>
+                    prev.map((i) =>
+                        i.id === newItem.id
+                            ? { ...i, productName: newItem.productName.trim(), quantity: qty, price: pr }
+                            : i
                     )
                 );
                 showToast('Product updated successfully');
             } else {
-                const docRef = await addDoc(collection(db, "inventory"), newItemData);
-                setInventory(prevInventory => [
-                    ...prevInventory,
-                    { ...newItemData, id: docRef.id }
+                const id = await inventoryApi.add({
+                    productName: newItem.productName.trim(),
+                    quantity: qty,
+                    price: pr,
+                    adminId,
+                });
+                setInventory((prev) => [
+                    ...prev,
+                    { id, productName: newItem.productName.trim(), quantity: qty, price: pr, adminId, createdAt: new Date() }
                 ]);
                 showToast('Product added successfully');
             }
-            
-            setNewItem({ productName: '', quantity: '', createdAt: new Date() });
+            setNewItem({ productName: '', quantity: '', price: '', createdAt: new Date() });
             setShowForm(false);
+            setInventoryItem(await inventoryApi.getByAdmin(adminId));
         } catch (error) {
             console.error("Error adding/updating item: ", error);
             showToast('Failed to save product');
@@ -132,7 +142,7 @@ function InventoryProducts({ onInventoryUpdate, searchTerm }) {
                 <button
                     onClick={() => {
                         setShowForm(true);
-                        setNewItem({ productName: '', quantity: '', createdAt: new Date() });
+                        setNewItem({ productName: '', quantity: '', price: '', createdAt: new Date() });
                     }}
                     className="bg-[#108587] text-white text-xl font-semibold px-5 py-1 rounded-md cursor-pointer transition hover:bg-[#17BCBE]"
                 >
@@ -177,13 +187,21 @@ function InventoryProducts({ onInventoryUpdate, searchTerm }) {
                                 value={newItem.quantity}
                                 onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+                                className="w-full p-3 mb-2 border border-gray-300 rounded-md"
+                            />
+                            <h2 className='mb-3 text-[#108587] font-semibold '>Price per unit (optional)</h2>
+                            <input
+                                type="number"
+                                value={newItem.price ?? ''}
+                                onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
                                 className="w-full p-3 mb-6 border border-gray-300 rounded-md"
                             />
                             <div className="flex justify-end space-x-3 mt-4">
                                 <button
                                     onClick={() => {
                                         setShowForm(false);
-                                        setNewItem({ productName: '', quantity: '', createdAt: new Date() });
+                                        setNewItem({ productName: '', quantity: '', price: '', createdAt: new Date() });
                                     }}
                                     className="px-4 py-2 text-[#DC2626] rounded-md bg-[#FFE7E7] hover:bg-[#fddada] transition-colors cursor-pointer"
                                 >

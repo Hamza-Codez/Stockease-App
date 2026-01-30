@@ -1,64 +1,57 @@
 import React, { useState } from "react";
-import { auth } from "../../firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { authApi, userProfileApi } from "../services/firebaseApi";
 import { Link, useNavigate } from "react-router-dom";
-import Nav from "../components/Nav";
-
+import navIcon from "../assets/img/navIcon.png";
 
 function Signup() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
+    displayName: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      console.log("Signup successful:", userCredential.user.uid);
-      localStorage.setItem("adminId", userCredential.user.uid);
+      const userCredential = await authApi.signUp(formData.email, formData.password);
+      const uid = userCredential.user.uid;
+      const email = userCredential.user.email || "";
+      const displayName = formData.displayName?.trim() || email.split("@")[0] || "User";
+      await userProfileApi.set(uid, { email, displayName });
+      localStorage.setItem("adminId", uid);
+      localStorage.setItem("userDisplayName", displayName);
       setSuccess("Signup successful! Redirecting...");
-      
-      setTimeout(() => {
-        navigate("/home");
-      }, 2000);
-      
-      setFormData({ email: "", password: "", confirmPassword: "" });
-    } catch (error) {
-      console.error("Signup error:", error);
-      setError(error.message);
+      setTimeout(() => navigate("/home"), 2000);
+      setFormData({ email: "", password: "", confirmPassword: "", displayName: "" });
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message || "Signup failed");
     }
   };
 
   return (
    <>
-    <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
-        <Nav/>
+    <nav className="bg-white flex justify-center px-4 sm:px-6 lg:px-8 border-b border-gray-200 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <img className="h-8 w-8" src={navIcon} alt="Logo" />
+          <span className="text-2xl font-bold text-[#108587] leading-tight">Stockease</span>
+        </div>
       </nav>
-    <div className="flex max-h-screen items-center justify-center pt-12 bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF]j px-4 sm:px-6 lg:px-8">
+    <div className="flex max-h-screen items-center justify-center pt-12 bg-gradient-to-b from-[#eff5f4] to-[#FFFFFF] px-4 sm:px-6 lg:px-8">
       <div className="w-[25rem] pb-12 max-w-md sm:max-w-lg lg:max-w-xl bg-white p-8 shadow-md rounded-lg">
         {/* Title */}
         <h2 className="text-start pb-3 text-2xl font-bold text-[#108587]">Create New Account</h2>
@@ -90,6 +83,23 @@ function Signup() {
               value={formData.email}
               onChange={handleChange}
               required
+              className="block w-full px-4 py-3 mt-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+
+          <div className="relative">
+            <label
+              htmlFor="displayName"
+              className="absolute -top-2 left-3 z-10 px-2 text-xs font-medium text-[#108587] bg-white"
+            >
+              Display Name (optional)
+            </label>
+            <input
+              type="text"
+              name="displayName"
+              value={formData.displayName}
+              onChange={handleChange}
+              placeholder="How we'll greet you"
               className="block w-full px-4 py-3 mt-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>

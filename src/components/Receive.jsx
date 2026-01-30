@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { customerDataDataContext } from '../pages/CustomerContext';
-import { db } from '../../firebaseConfig';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { customerRecordsApi } from '../services/firebaseApi';
 import { toast } from 'react-toastify';
 
 function Receive() {
@@ -14,34 +13,20 @@ function Receive() {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      if (!customerId) return;
-      
+      if (!customerId || !adminId) return;
       try {
-        const recordsQuery = query(
-          collection(db, "customerRecord"),
-          where("customer_id", "==", customerId),
-          where("admin_id", "==", adminId)
-        );
-        
-        const recordsSnapshot = await getDocs(recordsQuery);
-        let balance = 0;
-
-        recordsSnapshot.docs.forEach(doc => {
-          const record = doc.data();
-          if (record.type === 'send') {
-            balance += record.total_amount;
-          } else if (record.type === 'receive') {
-            balance -= record.amount;
-          }
-        });
-
+        const records = await customerRecordsApi.getByCustomerAndAdmin(customerId, adminId);
+        const balance = records.reduce((sum, r) => {
+          if (r.type === 'send') return sum + (r.total_amount || 0);
+          if (r.type === 'receive') return sum - (r.amount || 0);
+          return sum;
+        }, 0);
         setTotalBalance(balance);
       } catch (error) {
         console.error("Error:", error);
         toast.error('Failed to fetch balance');
       }
     };
-
     fetchBalance();
   }, [customerId, adminId]);
 
@@ -66,7 +51,7 @@ function Receive() {
     if (!validateForm()) return;
 
     try {
-      const data = {
+      await customerRecordsApi.add({
         customer_id: customerId,
         admin_id: adminId,
         amount: Number(receivedAmount),
@@ -74,10 +59,8 @@ function Receive() {
         created_at: new Date(),
         type: 'receive',
         previous_balance: totalBalance,
-        remaining_balance: totalBalance - Number(receivedAmount)
-      };
-
-      await addDoc(collection(db, "customerRecord"), data);
+        remaining_balance: totalBalance - Number(receivedAmount),
+      });
       
       setTotalBalance(prev => prev - Number(receivedAmount));
       setReceivedAmount('');

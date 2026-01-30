@@ -66,7 +66,12 @@ const Card = ({ item, onEdit, onDelete }) => {
                 {Number(item.quantity).toLocaleString()} {item.quantity === 1 ? 'unit' : 'units'}
               </span>
             </div>
-            
+            {item.price != null && Number(item.price) !== 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Price/unit:</span>
+                <span className="font-semibold text-gray-800 text-sm">Rs {Number(item.price).toLocaleString()}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-600">Added:</span>
               <span className="font-semibold text-gray-800 text-sm">
